@@ -21,6 +21,7 @@ export type ReviewResult = {
   summary: string;
   counts: { pass: number; fail: number; unsure: number };
   model: string;
+  provider: "anthropic" | "openai";
   ms: number;
 };
 

@@ -202,6 +202,50 @@ body {
   letter-spacing: 0.08em;
 }
 
+/* ---- provider segmented control ---- */
+.seg {
+  margin-top: 0.55rem;
+  display: inline-flex;
+  background: var(--field);
+  border: 1px solid var(--field-line);
+  border-radius: 0.6rem;
+  padding: 0.25rem;
+  gap: 0.25rem;
+}
+.seg button {
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+  background: transparent;
+  border: 0;
+  border-radius: 0.45rem;
+  padding: 0.45rem 0.95rem;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+.seg button:hover {
+  color: var(--ink);
+}
+.seg button.on {
+  background: var(--brass-soft);
+  color: #1a1206;
+}
+
+.row2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+.row2 .field {
+  margin-top: 1.2rem;
+}
+@media (max-width: 520px) {
+  .row2 {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* ---- run button ---- */
 .run {
   margin-top: 1.5rem;
@@ -352,6 +396,118 @@ body {
   display: flex;
   gap: 1.2rem;
   flex-wrap: wrap;
+}
+
+/* ---- teach / correction ---- */
+.teach-toggle {
+  margin-top: 0.55rem;
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.06em;
+  color: var(--faint);
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+.teach-toggle:hover {
+  color: var(--brass-soft);
+}
+.teach {
+  margin-top: 0.7rem;
+  animation: rise 0.3s ease both;
+}
+.teach textarea {
+  width: 100%;
+  font-family: inherit;
+  font-size: 0.88rem;
+  line-height: 1.5;
+  color: var(--ink);
+  background: var(--field);
+  border: 1px solid var(--field-line);
+  border-radius: 0.5rem;
+  padding: 0.65rem 0.75rem;
+  min-height: 70px;
+  resize: vertical;
+}
+.teach textarea:focus {
+  border-color: var(--brass);
+  outline: none;
+}
+.teach-save {
+  margin-top: 0.55rem;
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-weight: 600;
+  font-size: 0.82rem;
+  color: #1a1206;
+  background: var(--brass-soft);
+  border: 0;
+  border-radius: 999px;
+  padding: 0.4rem 1rem;
+  cursor: pointer;
+  transition: background 0.2s, opacity 0.2s;
+}
+.teach-save:hover:not(:disabled) {
+  background: var(--brass);
+}
+.teach-save:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ---- learned lessons panel ---- */
+.lessons {
+  margin-top: 1.5rem;
+}
+.lessons-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+}
+.lessons-head .count {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--brass-soft);
+}
+.lesson-list {
+  list-style: none;
+  margin-top: 1.2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+.lesson-list li {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  background: rgba(243, 236, 225, 0.04);
+  border: 1px solid var(--panel-line);
+  border-left: 3px solid var(--brass);
+  border-radius: 0.6rem;
+  padding: 0.8rem 0.95rem;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: var(--ink);
+}
+.lesson-list li button {
+  flex-shrink: 0;
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--faint);
+  background: none;
+  border: 0;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+.lesson-list li button:hover {
+  color: var(--fail);
 }
 
 /* ---- footer ---- */
