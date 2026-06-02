@@ -1,0 +1,380 @@
+/*
+  The Reviewer — same warm-dawn family as the Agentverftet site, but this one is a
+  tool, so it stays in the indigo "night" end of the palette with brass accents.
+  Self-contained CSS, no Tailwind, so nothing global leaks in.
+*/
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  color-scheme: dark;
+  --ink: #f3ece1;
+  --ink-soft: #cabbb0;
+  --faint: #9a8a80;
+  --brass: #cf9550;
+  --brass-soft: #e7b269;
+  --pass: #7fc99a;
+  --fail: #e88a7d;
+  --unsure: #e7b269;
+  --panel: rgba(18, 14, 34, 0.55);
+  --panel-line: rgba(243, 236, 225, 0.14);
+  --field: #15121e;
+  --field-line: #2a2438;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-sans), system-ui, sans-serif;
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+  background:
+    radial-gradient(120% 50% at 80% 0%, rgba(231, 178, 105, 0.13), transparent 55%),
+    linear-gradient(180deg, #141026 0%, #181433 35%, #221b37 70%, #2c2140 100%);
+  background-attachment: fixed;
+}
+
+::selection {
+  background: var(--brass);
+  color: #1a1206;
+}
+
+*:focus-visible {
+  outline: 2px solid var(--brass-soft);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.page {
+  width: 100%;
+  max-width: 72rem;
+  margin-inline: auto;
+  padding: 3.5rem 2rem 5rem;
+}
+
+/* ---- header ---- */
+.eyebrow {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  text-transform: uppercase;
+  letter-spacing: 0.26em;
+  font-size: 0.74rem;
+  color: var(--brass-soft);
+}
+.head h1 {
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  font-size: clamp(2.2rem, 5.5vw, 3.4rem);
+  line-height: 1.04;
+  margin-top: 0.9rem;
+  max-width: 20ch;
+}
+.head p.lead {
+  margin-top: 1.1rem;
+  max-width: 46rem;
+  font-size: 1.08rem;
+  line-height: 1.6;
+  color: var(--ink-soft);
+}
+.head p.lead b {
+  color: #fff;
+  font-weight: 600;
+}
+
+/* ---- examples row ---- */
+.examples {
+  margin-top: 1.8rem;
+  display: flex;
+  gap: 0.7rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.examples .label {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+.chip {
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: var(--ink);
+  background: rgba(243, 236, 225, 0.06);
+  border: 1px solid var(--panel-line);
+  border-radius: 999px;
+  padding: 0.4rem 0.9rem;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+}
+.chip:hover {
+  background: rgba(207, 149, 80, 0.12);
+  border-color: var(--brass);
+}
+
+/* ---- layout ---- */
+.grid {
+  margin-top: 2rem;
+  display: grid;
+  gap: 1.5rem;
+  grid-template-columns: 1fr 1fr;
+  align-items: start;
+}
+@media (max-width: 860px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.panel {
+  background: var(--panel);
+  backdrop-filter: blur(8px);
+  border: 1px solid var(--panel-line);
+  border-radius: 1.25rem;
+  padding: 1.6rem clamp(1.1rem, 2.5vw, 1.8rem) 1.8rem;
+}
+.panel h2 {
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-weight: 700;
+  font-size: 1.25rem;
+  letter-spacing: -0.02em;
+}
+
+/* ---- fields ---- */
+.field {
+  margin-top: 1.2rem;
+}
+.field:first-of-type {
+  margin-top: 1.4rem;
+}
+.field label {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--brass-soft);
+}
+.field label .hint {
+  color: var(--faint);
+  letter-spacing: 0.04em;
+  text-transform: none;
+  font-size: 0.72rem;
+}
+.field textarea,
+.field input {
+  width: 100%;
+  margin-top: 0.55rem;
+  font-family: inherit;
+  font-size: 0.95rem;
+  line-height: 1.55;
+  color: var(--ink);
+  background: var(--field);
+  border: 1px solid var(--field-line);
+  border-radius: 0.6rem;
+  padding: 0.8rem 0.9rem;
+  resize: vertical;
+}
+.field textarea:focus,
+.field input:focus {
+  border-color: var(--brass);
+  outline: none;
+}
+.field textarea.tall {
+  min-height: 130px;
+}
+.field textarea.short {
+  min-height: 90px;
+}
+.field input[type="password"] {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  letter-spacing: 0.08em;
+}
+
+/* ---- run button ---- */
+.run {
+  margin-top: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+.run button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: #1a1206;
+  background: var(--brass-soft);
+  border: 0;
+  border-radius: 999px;
+  padding: 0.7rem 1.6rem;
+  cursor: pointer;
+  box-shadow: 0 10px 28px -12px rgba(207, 149, 80, 0.7);
+  transition: background 0.2s, opacity 0.2s;
+}
+.run button:hover:not(:disabled) {
+  background: var(--brass);
+}
+.run button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+.run .note {
+  font-size: 0.82rem;
+  color: var(--faint);
+  line-height: 1.45;
+}
+
+/* ---- result ---- */
+.result-empty {
+  color: var(--faint);
+  font-size: 0.95rem;
+  line-height: 1.6;
+  margin-top: 1.4rem;
+}
+.error {
+  margin-top: 1.3rem;
+  background: rgba(232, 138, 125, 0.12);
+  border: 1px solid rgba(232, 138, 125, 0.4);
+  border-radius: 0.7rem;
+  padding: 0.9rem 1rem;
+  color: #f0b6ac;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.gate {
+  margin-top: 1.4rem;
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  border-radius: 0.85rem;
+  padding: 1rem 1.1rem;
+  animation: rise 0.45s cubic-bezier(0.2, 0.85, 0.2, 1) both;
+}
+@keyframes rise {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: none; }
+}
+.gate.block {
+  background: rgba(232, 138, 125, 0.13);
+  border: 1px solid rgba(232, 138, 125, 0.45);
+}
+.gate.pass {
+  background: rgba(127, 201, 154, 0.12);
+  border: 1px solid rgba(127, 201, 154, 0.4);
+}
+.gate .badge {
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-weight: 700;
+  font-size: 1.05rem;
+  letter-spacing: 0.02em;
+  padding: 0.25rem 0.8rem;
+  border-radius: 999px;
+}
+.gate.block .badge {
+  background: var(--fail);
+  color: #2a0f0a;
+}
+.gate.pass .badge {
+  background: var(--pass);
+  color: #0c2417;
+}
+.gate .summary {
+  font-size: 0.95rem;
+  line-height: 1.5;
+  color: var(--ink);
+}
+
+.items {
+  margin-top: 1.2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+.item {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.8rem;
+  background: rgba(243, 236, 225, 0.04);
+  border: 1px solid var(--panel-line);
+  border-left-width: 3px;
+  border-radius: 0.6rem;
+  padding: 0.85rem 0.95rem;
+}
+.item.pass { border-left-color: var(--pass); }
+.item.fail { border-left-color: var(--fail); }
+.item.unsure { border-left-color: var(--unsure); }
+.item .mark {
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-weight: 700;
+  font-size: 1.1rem;
+  line-height: 1.3;
+  width: 1.3rem;
+  text-align: center;
+}
+.item.pass .mark { color: var(--pass); }
+.item.fail .mark { color: var(--fail); }
+.item.unsure .mark { color: var(--unsure); }
+.item .crit {
+  font-weight: 600;
+  font-size: 0.92rem;
+  line-height: 1.4;
+  color: var(--ink);
+}
+.item .ev {
+  margin-top: 0.3rem;
+  font-size: 0.86rem;
+  line-height: 1.5;
+  color: var(--ink-soft);
+}
+
+.meta {
+  margin-top: 1.2rem;
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.06em;
+  color: var(--faint);
+  display: flex;
+  gap: 1.2rem;
+  flex-wrap: wrap;
+}
+
+/* ---- footer ---- */
+.foot {
+  margin-top: 3rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--panel-line);
+  font-size: 0.85rem;
+  line-height: 1.6;
+  color: var(--faint);
+}
+.foot a {
+  color: var(--brass-soft);
+  text-decoration: none;
+  border-bottom: 1px solid rgba(231, 178, 105, 0.3);
+}
+.foot a:hover {
+  border-bottom-color: var(--brass-soft);
+}
+.foot code {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 0.82em;
+  background: rgba(243, 236, 225, 0.07);
+  padding: 0.1rem 0.35rem;
+  border-radius: 4px;
+}
