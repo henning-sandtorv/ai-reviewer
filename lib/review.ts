@@ -1,6 +1,17 @@
 import { REVIEW_TOOL, type ReviewItem, type ReviewResult, type Verdict } from "./schema";
+import {
+  ApiError,
+  callForcedTool,
+  defaultBaseUrl,
+  defaultModel,
+  envKey,
+  normalizeProvider,
+  type ProviderId,
+} from "./provider";
 
-export type ProviderId = "anthropic" | "openai";
+export type { ProviderId } from "./provider";
+// Kept as a named export so existing callers (the route) don't have to change.
+export { ApiError as ReviewError } from "./provider";
 
 export type ReviewInput = {
   provider: ProviderId;
@@ -25,20 +36,6 @@ export type ReviewInput = {
 };
 
 const MAX_LESSONS = 40;
-
-function defaultModel(provider: ProviderId): string {
-  return provider === "anthropic" ? "claude-haiku-4-5-20251001" : "gpt-4o-mini";
-}
-
-function defaultBaseUrl(provider: ProviderId): string {
-  return provider === "anthropic"
-    ? "https://api.anthropic.com/v1"
-    : "https://api.openai.com/v1";
-}
-
-function envKey(provider: ProviderId): string | undefined {
-  return provider === "anthropic" ? process.env.ANTHROPIC_API_KEY : process.env.OPENAI_API_KEY;
-}
 
 const BASE_SYSTEM = `You are a strict quality reviewer sitting between an AI and its user. A primary AI produced an OUTPUT for some task. Your only job is to check that OUTPUT against each item of a CHECKLIST.
 
@@ -86,105 +83,33 @@ function normalizeVerdict(v: unknown): Verdict {
 
 type RawReview = { items?: Array<{ criterion?: string; verdict?: string; evidence?: string }>; summary?: string };
 
-// ---- provider calls -------------------------------------------------------
-// Both providers are asked for the SAME structured tool call, so everything
-// downstream is provider-agnostic.
-
-async function callAnthropic(input: ReviewInput, key: string, model: string, baseUrl: string): Promise<RawReview> {
-  const res = await fetch(`${baseUrl}/messages`, {
-    method: "POST",
-    headers: {
-      "content-type": "application/json",
-      "x-api-key": key,
-      "anthropic-version": "2023-06-01",
-    },
-    body: JSON.stringify({
-      model,
-      max_tokens: 1500,
-      system: buildSystem(input.lessons),
-      tools: [REVIEW_TOOL],
-      tool_choice: { type: "tool", name: REVIEW_TOOL.name },
-      messages: [{ role: "user", content: buildUserMessage(input) }],
-    }),
-  });
-  await assertOk(res);
-  const data = await res.json();
-  const block = Array.isArray(data?.content)
-    ? data.content.find((b: { type?: string; name?: string }) => b.type === "tool_use" && b.name === REVIEW_TOOL.name)
-    : undefined;
-  return (block?.input as RawReview) ?? {};
-}
-
-async function callOpenAI(input: ReviewInput, key: string, model: string, baseUrl: string): Promise<RawReview> {
-  const res = await fetch(`${baseUrl}/chat/completions`, {
-    method: "POST",
-    headers: {
-      "content-type": "application/json",
-      authorization: `Bearer ${key}`,
-    },
-    body: JSON.stringify({
-      model,
-      max_tokens: 1500,
-      messages: [
-        { role: "system", content: buildSystem(input.lessons) },
-        { role: "user", content: buildUserMessage(input) },
-      ],
-      tools: [
-        {
-          type: "function",
-          function: {
-            name: REVIEW_TOOL.name,
-            description: REVIEW_TOOL.description,
-            parameters: REVIEW_TOOL.input_schema,
-          },
-        },
-      ],
-      tool_choice: { type: "function", function: { name: REVIEW_TOOL.name } },
-    }),
-  });
-  await assertOk(res);
-  const data = await res.json();
-  const args = data?.choices?.[0]?.message?.tool_calls?.[0]?.function?.arguments;
-  if (!args) return {};
-  try {
-    return JSON.parse(args) as RawReview;
-  } catch {
-    return {};
-  }
-}
-
-async function assertOk(res: Response): Promise<void> {
-  if (res.ok) return;
-  const detail = await res.text().catch(() => "");
-  throw new ReviewError(
-    `Reviewer request failed (${res.status}). ${detail.slice(0, 300)}`.trim(),
-    res.status === 401 || res.status === 403 ? 401 : 502
-  );
-}
-
-// ---- entry point ----------------------------------------------------------
-
 export async function runReview(input: ReviewInput): Promise<ReviewResult> {
-  const provider: ProviderId = input.provider === "openai" ? "openai" : "anthropic";
+  const provider = normalizeProvider(input.provider);
   const key = input.apiKey?.trim() || envKey(provider);
   if (!key) {
-    throw new ReviewError(
+    throw new ApiError(
       "No API key. Paste your key in the field below, or set the matching server env key.",
       400
     );
   }
-  if (!input.output?.trim()) throw new ReviewError("Nothing to review — the output is empty.", 400);
-  if (!input.checklist.length) throw new ReviewError("Add at least one checklist item.", 400);
+  if (!input.output?.trim()) throw new ApiError("Nothing to review — the output is empty.", 400);
+  if (!input.checklist.length) throw new ApiError("Add at least one checklist item.", 400);
 
   const model = input.model?.trim() || process.env.REVIEWER_MODEL || defaultModel(provider);
   const baseUrl = (input.baseUrl?.trim() || defaultBaseUrl(provider)).replace(/\/+$/, "");
 
   const started = Date.now();
-  const raw = provider === "anthropic"
-    ? await callAnthropic(input, key, model, baseUrl)
-    : await callOpenAI(input, key, model, baseUrl);
+  const raw = (await callForcedTool({
+    provider,
+    key,
+    model,
+    baseUrl,
+    system: buildSystem(input.lessons),
+    userMessage: buildUserMessage(input),
+    tool: REVIEW_TOOL,
+  })) as RawReview;
 
-  if (!raw.items) throw new ReviewError("The reviewer did not return a structured verdict.", 502);
+  if (!raw.items) throw new ApiError("The reviewer did not return a structured verdict.", 502);
 
   const items: ReviewItem[] = raw.items.map((it) => ({
     criterion: String(it.criterion ?? ""),
@@ -203,13 +128,4 @@ export async function runReview(input: ReviewInput): Promise<ReviewResult> {
     provider,
     ms: Date.now() - started,
   };
-}
-
-// A typed error that carries the HTTP status the route should return.
-export class ReviewError extends Error {
-  status: number;
-  constructor(message: string, status: number) {
-    super(message);
-    this.status = status;
-  }
 }
