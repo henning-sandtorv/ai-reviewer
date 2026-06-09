@@ -9,6 +9,23 @@ import ProviderConfig from "./provider-config";
 const MARK = { pass: "✓", fail: "✕", unsure: "?" } as const;
 const LESSONS_KEY = "ai-reviewer:lessons";
 
+// A recorded review so anyone can watch the gate catch a hallucination with no key.
+// It pairs with the "Summary with invented facts" example (60-day window, made-up fee).
+const REVIEW_DEMO: ReviewResult = {
+  decision: "block",
+  items: [
+    { criterion: "Every fact in the summary is supported by the source.", verdict: "fail", evidence: "The summary says returns are allowed within 60 days; the source says 30." },
+    { criterion: "No numbers (days, fees, percentages) are changed or invented.", verdict: "fail", evidence: "30 days became 60, and a 10% restocking fee was added." },
+    { criterion: "The summary does not add any policy that is not in the source.", verdict: "fail", evidence: "The 10% restocking fee appears nowhere in the source." },
+    { criterion: "The tone is clear and professional.", verdict: "pass", evidence: "Reads clearly and professionally." },
+  ],
+  summary: "Blocked: the summary doubles the refund window and invents a restocking fee.",
+  counts: { pass: 1, fail: 3, unsure: 0 },
+  model: "claude-haiku-4-5 (recorded)",
+  provider: "anthropic",
+  ms: 1120,
+};
+
 export default function ReviewPanel() {
   const [provider, setProvider] = useState<ProviderId>("anthropic");
   const [model, setModel] = useState("");
@@ -66,6 +83,12 @@ export default function ReviewPanel() {
     setError(null);
     setResult(null);
     setCorrecting(null);
+  }
+
+  // Load the hallucination example and show its recorded verdict, no key needed.
+  function playDemo() {
+    loadExample("refund-hallucination");
+    setResult(REVIEW_DEMO);
   }
 
   async function runReview() {
@@ -193,6 +216,9 @@ export default function ReviewPanel() {
           <div className="run">
             <button onClick={runReview} disabled={!canRun}>
               {loading ? "Reviewing…" : "Run review"}
+            </button>
+            <button className="ghost" onClick={playDemo} disabled={loading} type="button">
+              Play demo (no key)
             </button>
             <span className="note">
               Use a small, cheap model — the point is that it still catches the big one&apos;s

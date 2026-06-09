@@ -33,6 +33,13 @@ export default function Home() {
 
       {mode === "review" ? <ReviewPanel /> : <ExtractPanel />}
 
+      <section className="book-cta">
+        <p>Want this guarding your AI in production?</p>
+        <a href="https://calendly.com/henningsandtorv/30min" target="_blank" rel="noopener">
+          Book a 30-min call →
+        </a>
+      </section>
+
       <footer className="foot">
         Two cheap-model QA patterns in one tool: gate an AI&apos;s output against a checklist, or
         pull structured data that flags what it isn&apos;t sure of instead of guessing. Open source.
